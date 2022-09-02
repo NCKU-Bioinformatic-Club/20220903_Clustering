@@ -3,8 +3,8 @@
   memory.limit(150000)
 
 ##### Current path and new folder setting* #####
-  ProjectName = "CC"
-  Sampletype = "DNAMeth"
+  ProjectName = "TCGA"
+  Sampletype = "BRCA"
   #ProjSamp.Path = paste0(Sampletype,"_",ProjectName)
   
   Version = paste0(Sys.Date(),"_",ProjectName,"_",Sampletype)
@@ -28,34 +28,105 @@
 
   # devtools::install_github("jokergoo/circlize")
   
-##### load sample #####
-  Input_1.df <- read.delim("cachexia_heatmap/cachexia_12_samples_285K_ANOVA.txt", sep = "\t")
-  Input_2.df <- read.delim("cachexia_heatmap/cachexia 15 samples_285K _raw data (m-value).txt", sep = "\t")
-  group.df <- read.delim("cachexia_heatmap/muscle group information.txt", sep = "\t")
+# ##### load sample #####
+#   Input_1.df <- read.delim("cachexia_heatmap/cachexia_12_samples_285K_ANOVA.txt", sep = "\t")
+#   Input_2.df <- read.delim("cachexia_heatmap/cachexia 15 samples_285K _raw data (m-value).txt", sep = "\t")
+#   group.df <- read.delim("cachexia_heatmap/muscle group information.txt", sep = "\t")
 
+##### Import setting and Import* #####
+  ## File setting*
+  InFOLName_GE <- "Input_TCGA"  # Input Folder Name
+  SampleName <- "Xena_TCGA_BRCA_GE"
+  SamplePhenoName <- "TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"
+  
+  ## Import genetic data file
+  GeneExp.df <- read.table(paste0(InFOLName_GE,"/",SampleName), header=T, row.names = 1, sep="\t")
+  colnames(GeneExp.df) <-  gsub("\\.", "-", colnames(GeneExp.df))
+  GeneExp_ORi.df <- GeneExp.df
+  
+  
+  Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
+  # Anno.df$sample_type <-  gsub(" ", "", Anno.df$sample_type)
+  
+##### Conditions setting* #####
+  ExportName <- "HeatmapTest"
+  
+  Group_Mode <- "GoupByPheno"   # c("GoupByPheno","GoupByGeneExp")
+  GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal")
+  TarGene_name <- "TP53"
+  
+  GeneExpSet.lt <- list(GeneExpMode = "Mean", # c("Mean","Mean1SD","Mean2SD","Mean3SD","Median","Quartile","Customize"))
+                        UpCutoff = 1, LowerCutoff = 1)
+  
+  if(Group_Mode == "GoupByGeneExp"){
+    ## Group by GeneExp
+    AnnoSet.lt <- list(GroupType = TarGene_name, GroupCompare = c("High","Low") )   ## DEG by GeneExp group
+  }else{
+    ## Group by Pheno
+    AnnoSet.lt <- list(GroupType = "sample_type", GroupCompare = c(GroupCompare_Pheno) )
+  }
+  
+  
+  
+  Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) )
+  
+  
+  
+##### Data preprocess setting #####
+  ## Select Pheno column
+  Anno_Ori.df <- Anno.df
+  colnames(Anno.df)
+  
+  PhenoColKeep.set <- c("X_INTEGRATION","histological_type","sample_type","gender")
+  Anno.df <- Anno.df[,c(PhenoColKeep.set)]
+  colnames(Anno.df)
+  
+  head(Anno.df)
+  
+  # Random select sample
+  Anno_Rec.df <- Anno.df[Anno.df[,"sample_type"] %in% "Solid Tissue Normal", ]
+  Anno_Prim.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
+  Anno.df <- rbind(Anno_Prim.df[sample(1:nrow(Anno_Prim.df),nrow(Anno_Rec.df)),],Anno_Rec.df)
+  
+  GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df$X_INTEGRATION] 
+  Anno.df <- Anno.df[Anno.df$X_INTEGRATION %in% colnames(GeneExp.df),]
+  
+  ## Reorder the Anno.df
+  Anno.df <- left_join(data.frame("X_INTEGRATION"=colnames(GeneExp.df)),
+                       Anno.df)
+
+  
+  # ## Select Pheno row
+  # PhenoRowKeep.set <- list(col="sample_type",row=c("Primary Tumor","Recurrent Tumor"))
+  # Anno.df <- Anno.df[Anno.df[,PhenoRowKeep.set[["col"]]] %in% PhenoRowKeep.set[["row"]], ]
+ 
+##### Grouping #####
+  source("FUN_Group_GE.R")
+  ##### Group by gene expression 1: CutOff by total  #####
+  GeneExp_group.set <- FUN_Group_GE(GeneExp.df, Anno.df,
+                                    TarGeneName = TarGene_name, GroupSet = GeneExpSet.lt,
+                                    Save.Path = Save.Path, SampleName = ExportName)
+  Anno.df <- GeneExp_group.set[["AnnoNew.df"]]
+
+#### Run DEG ####
+  source("FUN_DEG_Analysis.R")
+  DEG_ANAL.lt <- FUN_DEG_Analysis(GeneExp.df, Anno.df,
+                                  GroupType = AnnoSet.lt[["GroupType"]], GroupCompare = AnnoSet.lt[["GroupCompare"]],
+                                  ThrSet = Thr.lt,
+                                  TarGeneName = TarGene_name, GroupMode = GeneExpSet.lt, SampleID = "X_INTEGRATION",
+                                  Save.Path = Save.Path, SampleName = ExportName, AnnoName = "")
+  DE_Extract.df <- DEG_ANAL.lt[["DE_Extract.df"]]
+  
+  selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:2000],]
+  # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:2000],]
+  selectedGenes <- selectedGenes[selectedGenes$FDR < 0.01,]
 ##### Data preprocessing #####
-  ## Matrix
-  result_1.df <- Input_1.df %>% select(Probeset.ID,CHR,MAPINFO,p.value.Severe.vs..Mild.,
-                                       Difference.Severe.vs..Mild.,Beta.Difference.Severe.vs..Mild.) %>% 
-                                       filter(abs(Beta.Difference.Severe.vs..Mild.) > 0.1) %>%
-                                       filter(p.value.Severe.vs..Mild. < 0.05) %>% 
-                                       rename(ID=Probeset.ID) %>% 
-                                       left_join(Input_2.df, by="ID")  %>% 
-                                       distinct(ID,.keep_all=T)
-  ## Extract matrix
-  matrix.df <- result_1.df[,-2:-6]
-  
-  ## Convert "?" to NA
-  matrix.df[matrix.df=="?"] <- NA
-  
-  ## Convert dataframe element to numeric
-  matrix.df <- data.frame(apply(matrix.df, 2, function(x) as.numeric(as.character(x))))
+  matrix.df <- GeneExp.df[  row.names(GeneExp.df) %in% selectedGenes$Gene,]
   
   ## Annotation col
-  anno_colum.df <- data.frame(Sentrix.Barcode=colnames(Input_2.df)[-1]) %>% 
-                              left_join(group.df,by="Sentrix.Barcode")
+  anno_colum.df <- Anno.df
   ## Annotation row
-  anno_row.df <- result_1.df[,1:6]
+  anno_row.df <- DE_Extract.df[DE_Extract.df$Gene %in% selectedGenes$Gene, ]
 
   
 ##### Export data #####  
@@ -66,43 +137,43 @@
 ##### Heatmap plotting #####
   ## Set column annotation
   column_ha_T = HeatmapAnnotation(
-    Condition = anno_colum.df$Body.weight,
-    Condition2 = anno_colum.df$Area,
-    col = list(Condition = c("Mild"="#9b6ab8", "Severe"="#6e6970"),
-               Condition2= c("Mild"="#9b6ab8", "Severe"="#6e6970","Medium"="#b57545")),
+    Sample = anno_colum.df$sample_type,
+    Gender = anno_colum.df$gender,
+    col = list(Sample = c("Primary Tumor"="#9b6ab8", "Solid Tissue Normal"="#6e6970"),
+               Gender = c("MALE"="#9b6ab8", "FEMALE"="#6e6970")), #,"Medium"="#b57545"
     show_legend = T
   )
   
   ## generate color of top annotation 
   col_exp <-  colorRamp2(
-    c(0, 0.025, 0.05),
+    c(min(anno_row.df$PValue), mean(anno_row.df$PValue), max(anno_row.df$PValue)),
     c("#248a5c", "#52bf8e","#bbedd7")
   ) 
   col_exp2 <-  colorRamp2(
-    c(-17, 0, 17),
+    c(min(anno_row.df$logFC), mean(anno_row.df$logFC), max(anno_row.df$logFC)),
     c("#1a5691", "#96cbff", "#d1e8ff")
   ) 
   
   row_ha = rowAnnotation(
-    p.value = anno_row.df$p.value.Severe.vs..Mild.,
-    LogFC = anno_row.df$Difference.Severe.vs..Mild.,
+    p.value = anno_row.df$PValue,
+    LogFC = anno_row.df$logFC,
     col = list(p.value = col_exp, LogFC = col_exp2),
     show_legend = T
   )
   
   
   Heatmap(
-    matrix.df[-1],
+    matrix.df,
     # column_title = target_gene,
     # column_title_side = "top",
     cluster_rows = T,
     cluster_columns = T,
     show_column_names = F,
     show_row_names = F,
-    name = "M-Value",
+    name = "GeneExp",
     # set color
     col = colorRamp2(
-      c(0, 0.5, 1),
+      c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
       c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
@@ -114,10 +185,31 @@
   P.Heatmap %>% print
   
   
+  Heatmap(
+    matrix.df,
+    cluster_rows = T,
+    cluster_columns = F,
+    show_column_names = F,
+    show_row_names = F,
+    name = "GeneExp",
+    # set color
+    col = colorRamp2(
+      c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
+      c("#1c77d9", "#1a2938", "#ffe182")
+    ),
+    show_heatmap_legend = T,
+    use_raster = F,
+    top_annotation = column_ha_T,
+    right_annotation = row_ha
+  ) -> P.Heatmap2
+  
+  P.Heatmap2 %>% print
+  
+  
 ##### Export PDF #####
   
   pdf(
-    file = paste0(getwd(), "/",Version,"/", Sys.Date(), "_MValue_Heatmap.pdf"),
+    file = paste0(getwd(), "/",Version,"/", Sys.Date(), "_GeneExp_Heatmap.pdf"),
     width = 7, height = 7
   )
   P.Heatmap
