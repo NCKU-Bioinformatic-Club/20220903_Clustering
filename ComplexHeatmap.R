@@ -48,7 +48,7 @@
   
   Group_Mode <- "GoupByPheno"   # c("GoupByPheno","GoupByGeneExp")
   GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal")
-  TarGene_name <- "TP53"
+  TarGene_name <- "TOP2A"
   
   GeneExpSet.lt <- list(GeneExpMode = "Mean", # c("Mean","Mean1SD","Mean2SD","Mean3SD","Median","Quartile","Customize"))
                         UpCutoff = 1, LowerCutoff = 1)
@@ -119,6 +119,7 @@
   selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:2000],]
   # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:2000],]
   selectedGenes <- selectedGenes[selectedGenes$FDR < 0.01,]
+  selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > 1,]
   
 ##### Data preprocessing #####
   matrix.df <- GeneExp.df[row.names(GeneExp.df) %in% selectedGenes$Gene,]
@@ -134,19 +135,25 @@
   column_ha_T = HeatmapAnnotation(
     Sample = anno_colum.df$sample_type,
     Gender = anno_colum.df$gender,
+    TarGene = anno_colum.df[,TarGene_name],
     col = list(Sample = c("Primary Tumor"="#9b6ab8", "Solid Tissue Normal"="#6e6970"),
-               Gender = c("MALE"="#9b6ab8", "FEMALE"="#6e6970")), #,"Medium"="#b57545"
+               Gender = c("MALE"="#4382b5", "FEMALE"="#c25988"), #,"Medium"="#b57545"
+               TarGene = c("High"="#db8051", "Low"="#c26334")), # #b6d4ca
     show_legend = T
   )
   
   ## generate color of top annotation 
   col_exp <-  colorRamp2(
     c(min(anno_row.df$PValue), mean(anno_row.df$PValue), max(anno_row.df$PValue)),
-    c("#248a5c", "#52bf8e","#bbedd7")
+    # c("#248a5c", "#52bf8e","#bbedd7")
+    # c("#c26334", "#db8051","#edd2bb")
+    c("#3f705a", "#52bf8e","#b6d4ca")
+
   ) 
   col_exp2 <-  colorRamp2(
     c(min(anno_row.df$logFC), mean(anno_row.df$logFC), max(anno_row.df$logFC)),
-    c("#1a5691", "#96cbff", "#d1e8ff")
+    # c("#1a5691", "#96cbff", "#d1e8ff")
+    c("#488c67", "#333333","#edd493")
   ) 
   
   row_ha = rowAnnotation(
@@ -169,7 +176,8 @@
     # set color
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
-      c("#1c77d9", "#1a2938", "#ffe182")
+      c("#416db0", "#1a2938", "#bf627e")
+      # c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
     use_raster = F,
@@ -190,7 +198,8 @@
     # set color
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
-      c("#1c77d9", "#1a2938", "#ffe182")
+      c("#416db0", "#1a2938", "#bf627e")
+      # c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
     use_raster = F,
@@ -214,7 +223,8 @@
     # set color
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
-      c("#1c77d9", "#1a2938", "#ffe182")
+      c("#416db0", "#1a2938", "#bf627e")
+      # c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
     use_raster = F,
