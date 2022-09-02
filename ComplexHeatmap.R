@@ -28,11 +28,6 @@
 
   # devtools::install_github("jokergoo/circlize")
   
-# ##### load sample #####
-#   Input_1.df <- read.delim("cachexia_heatmap/cachexia_12_samples_285K_ANOVA.txt", sep = "\t")
-#   Input_2.df <- read.delim("cachexia_heatmap/cachexia 15 samples_285K _raw data (m-value).txt", sep = "\t")
-#   group.df <- read.delim("cachexia_heatmap/muscle group information.txt", sep = "\t")
-
 ##### Import setting and Import* #####
   ## File setting*
   InFOLName_GE <- "Input_TCGA"  # Input Folder Name
@@ -42,7 +37,7 @@
   ## Import genetic data file
   GeneExp.df <- read.table(paste0(InFOLName_GE,"/",SampleName), header=T, row.names = 1, sep="\t")
   colnames(GeneExp.df) <-  gsub("\\.", "-", colnames(GeneExp.df))
-  GeneExp_ORi.df <- GeneExp.df
+  GeneExp_ORi.df <- GeneExp.df # Save Ori
   
   
   Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
@@ -73,8 +68,9 @@
   
   
 ##### Data preprocess setting #####
+  #### Selection ####
   ## Select Pheno column
-  Anno_Ori.df <- Anno.df
+  Anno_Ori.df <- Anno.df # Save Ori
   colnames(Anno.df)
   
   PhenoColKeep.set <- c("X_INTEGRATION","histological_type","sample_type","gender")
@@ -83,7 +79,12 @@
   
   head(Anno.df)
   
-  # Random select sample
+  # ## Select Pheno row
+  # PhenoRowKeep.set <- list(col="sample_type",row=c("Primary Tumor","Recurrent Tumor"))
+  # Anno.df <- Anno.df[Anno.df[,PhenoRowKeep.set[["col"]]] %in% PhenoRowKeep.set[["row"]], ]
+  
+  
+  #### Random select sample ####
   Anno_Rec.df <- Anno.df[Anno.df[,"sample_type"] %in% "Solid Tissue Normal", ]
   Anno_Prim.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
   Anno.df <- rbind(Anno_Prim.df[sample(1:nrow(Anno_Prim.df),nrow(Anno_Rec.df)),],Anno_Rec.df)
@@ -91,16 +92,14 @@
   GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df$X_INTEGRATION] 
   Anno.df <- Anno.df[Anno.df$X_INTEGRATION %in% colnames(GeneExp.df),]
   
-  ## Reorder the Anno.df
+  rm(Anno_Rec.df,Anno_Prim.df)
+  
+  #### Reorder the Anno.df #### ## Important!!!
   Anno.df <- left_join(data.frame("X_INTEGRATION"=colnames(GeneExp.df)),
                        Anno.df)
 
-  
-  # ## Select Pheno row
-  # PhenoRowKeep.set <- list(col="sample_type",row=c("Primary Tumor","Recurrent Tumor"))
-  # Anno.df <- Anno.df[Anno.df[,PhenoRowKeep.set[["col"]]] %in% PhenoRowKeep.set[["row"]], ]
  
-##### Grouping #####
+##### Grouping by GeneExp #####
   source("FUN_Group_GE.R")
   ##### Group by gene expression 1: CutOff by total  #####
   GeneExp_group.set <- FUN_Group_GE(GeneExp.df, Anno.df,
@@ -120,18 +119,14 @@
   selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:2000],]
   # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:2000],]
   selectedGenes <- selectedGenes[selectedGenes$FDR < 0.01,]
+  
 ##### Data preprocessing #####
-  matrix.df <- GeneExp.df[  row.names(GeneExp.df) %in% selectedGenes$Gene,]
+  matrix.df <- GeneExp.df[row.names(GeneExp.df) %in% selectedGenes$Gene,]
   
   ## Annotation col
   anno_colum.df <- Anno.df
   ## Annotation row
   anno_row.df <- DE_Extract.df[DE_Extract.df$Gene %in% selectedGenes$Gene, ]
-
-  
-##### Export data #####  
-  write.table(matrix.df,"matrix.tsv",row.names = F,sep = "\t")
-  write.table(anno_colum.df,"annotation.tsv",row.names = F,sep = "\t")
 
 
 ##### Heatmap plotting #####
@@ -206,14 +201,43 @@
   P.Heatmap2 %>% print
   
   
+  # Reorder
+  # https://jokergoo.github.io/ComplexHeatmap-reference/book/a-single-heatmap.html#row-and_column_orders
+  Heatmap(
+    matrix.df,
+    cluster_rows = T,
+    cluster_columns = F,
+    column_order = order(anno_colum.df$sample_type),
+    show_column_names = F,
+    show_row_names = F,
+    name = "GeneExp",
+    # set color
+    col = colorRamp2(
+      c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
+      c("#1c77d9", "#1a2938", "#ffe182")
+    ),
+    show_heatmap_legend = T,
+    use_raster = F,
+    top_annotation = column_ha_T,
+    right_annotation = row_ha
+  ) -> P.Heatmap3
+  
+  P.Heatmap3 %>% print
+  
+  
 ##### Export PDF #####
   
   pdf(
     file = paste0(getwd(), "/",Version,"/", Sys.Date(), "_GeneExp_Heatmap.pdf"),
     width = 7, height = 7
   )
-  P.Heatmap
-  
+    P.Heatmap
+    P.Heatmap2
+    P.Heatmap3
   graphics.off()
   
   
+##### Export data #####  
+  write.table(matrix.df,"matrix.tsv",row.names = F,sep = "\t")
+  write.table(anno_colum.df,"annotation.tsv",row.names = F,sep = "\t")
+  write.table(anno_row.df,"DEG.tsv",row.names = F,sep = "\t")  
