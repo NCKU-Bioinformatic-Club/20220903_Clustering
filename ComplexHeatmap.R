@@ -12,17 +12,6 @@
   ## Create new folder
   if (!dir.exists(Save.Path)){dir.create(Save.Path)}
 
-##### Load Packages #####
-  Package.set <- c("tidyverse","circlize","ComplexHeatmap","stringr")
-  ## Check whether the installation of those packages is required from basic
-  for (i in 1:length(Package.set)) {
-    if (!requireNamespace(Package.set[i], quietly = TRUE)){
-      install.packages(Package.set[i])
-    }
-  }
-  ## Load Packages
-  lapply(Package.set, library, character.only = TRUE)
-  rm(Package.set,i)
 
 ##### Import setting and Import* #####
   ## File setting*
@@ -37,7 +26,6 @@
   ## Rename the colnames
   colnames(GeneExp.df) <-  gsub("\\.", "-", colnames(GeneExp.df))
   GeneExp_ORi.df <- GeneExp.df # Save Ori
-  
   
   Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
   # Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t") #*
@@ -68,6 +56,23 @@
   ## Set threshold for DEG
   Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) ) #*
   SampleID = "X_INTEGRATION"
+  SampleNum = 50
+  GeneNum = 2000
+  FDRSet = 0.01
+  LogFCSet = 1
+  
+##### Load Packages #####
+  Package.set <- c("tidyverse","circlize","ComplexHeatmap","stringr")
+  ## Check whether the installation of those packages is required from basic
+  for (i in 1:length(Package.set)) {
+    if (!requireNamespace(Package.set[i], quietly = TRUE)){
+      install.packages(Package.set[i])
+    }
+  }
+  ## Load Packages
+  lapply(Package.set, library, character.only = TRUE)
+  rm(Package.set,i)
+  
   
 ##### Data preprocess #####
   Anno_Ori.df <- Anno.df # Save Ori
@@ -90,8 +95,8 @@
   # Extract Group2
   Anno_Grp2.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
   
-  Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),nrow(Anno_Grp1.df)),],Anno_Grp1.df)
-  # Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),50),],Anno_Grp1.df[sample(1:nrow(Anno_Grp1.df),50),])
+  # Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),nrow(Anno_Grp1.df)),],Anno_Grp1.df)
+  Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),SampleNum),],Anno_Grp1.df[sample(1:nrow(Anno_Grp1.df),SampleNum),])
   
   GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df[,SampleID]] 
   Anno.df <- Anno.df[Anno.df[,SampleID] %in% colnames(GeneExp.df),]
@@ -103,7 +108,8 @@
   GeneExpCol.df <- colnames(GeneExp.df) %>% as.data.frame()
   colnames(GeneExpCol.df) <- SampleID
   Anno.df <- left_join(GeneExpCol.df, Anno.df)
- 
+  rm(GeneExpCol.df)
+  
 ##### Grouping by GeneExp #####
   source("FUN_Group_GE.R")
   ##### Group by gene expression 1: CutOff by total  #####
@@ -111,6 +117,7 @@
                                     TarGeneName = TarGene_name, GroupSet = GeneExpSet.lt,
                                     Save.Path = Save.Path, SampleName = ExportName)
   Anno.df <- GeneExp_group.set[["AnnoNew.df"]]
+  rm(GeneExp_group.set)
 
 #### Run DEG ####
   source("FUN_DEG_Analysis.R")
@@ -121,10 +128,12 @@
                                   Save.Path = Save.Path, SampleName = ExportName, AnnoName = "")
   DE_Extract.df <- DEG_ANAL.lt[["DE_Extract.df"]]
   
-  selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:2000],]
-  # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:2000],]
-  selectedGenes <- selectedGenes[selectedGenes$FDR < 0.01,]
-  selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > 1,]
+  ## Filter genes
+  selectedGenes <- selectedGenes[selectedGenes$FDR < FDRSet,]
+  selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > LogFCSet,]
+  selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:GeneNum],]
+  # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:GeneNum],]
+
   
 ##### Data preprocessing #####
   ## Filter GeneExp matrix by selectedGenes
