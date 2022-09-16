@@ -36,21 +36,24 @@
   
   ## Import genetic data file
   GeneExp.df <- read.table(paste0(InFOLName_GE,"/",SampleName), header=T, row.names = 1, sep="\t")
-  GeneExp.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/Xena_TCGA_BRCA_GE"), header=T, row.names = 1, sep="\t")
+  # GeneExp.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/Xena_TCGA_BRCA_GE"), header=T, row.names = 1, sep="\t")
   
   colnames(GeneExp.df) <-  gsub("\\.", "-", colnames(GeneExp.df))
   GeneExp_ORi.df <- GeneExp.df # Save Ori
   
   
   Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
-  Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t")
+  # Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t")
   # Anno.df$sample_type <-  gsub(" ", "", Anno.df$sample_type)
   
 ##### Conditions setting* #####
   ExportName <- "HeatmapTest"
   
+  ## Set grouping mode
   Group_Mode <- "GoupByPheno"   # c("GoupByPheno","GoupByGeneExp")
+  # for GoupByPheno
   GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal")
+  # for GoupByGeneExp
   TarGene_name <- "TOP2A"
   
   GeneExpSet.lt <- list(GeneExpMode = "Mean", # c("Mean","Mean1SD","Mean2SD","Mean3SD","Median","Quartile","Customize"))
@@ -64,11 +67,8 @@
     AnnoSet.lt <- list(GroupType = "sample_type", GroupCompare = c(GroupCompare_Pheno) )
   }
   
-  
-  
+  ## Set threshold for DEG
   Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) )
-  
-  
   
 ##### Data preprocess setting #####
   #### Selection ####
