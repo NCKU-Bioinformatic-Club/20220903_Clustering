@@ -70,19 +70,18 @@
   
   ## Set threshold for DEG
   Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) ) #*
+  SampleID = "X_INTEGRATION"
   
-##### Data preprocess setting #####
-  #### Selection ####
-  ## Select Pheno column
+##### Data preprocess #####
   Anno_Ori.df <- Anno.df # Save Ori
   colnames(Anno.df)
   
-  PhenoColKeep.set <- c("X_INTEGRATION","histological_type","sample_type","gender")
+  #### Selection (Optional) ####
+  ## Select Pheno column
+  PhenoColKeep.set <- c("X_INTEGRATION","histological_type","sample_type","gender") #*
   Anno.df <- Anno.df[,c(PhenoColKeep.set)]
   colnames(Anno.df)
-  
-  head(Anno.df)
-  
+ 
   # ## Select Pheno row
   # PhenoRowKeep.set <- list(col="sample_type",row=c("Primary Tumor","Recurrent Tumor"))
   # Anno.df <- Anno.df[Anno.df[,PhenoRowKeep.set[["col"]]] %in% PhenoRowKeep.set[["row"]], ]
@@ -95,6 +94,7 @@
   Anno_Grp2.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
   
   Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),nrow(Anno_Grp1.df)),],Anno_Grp1.df)
+  Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),50),],Anno_Grp1.df[sample(1:nrow(Anno_Grp1.df),50),])
   
   GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df$X_INTEGRATION] 
   Anno.df <- Anno.df[Anno.df$X_INTEGRATION %in% colnames(GeneExp.df),]
@@ -119,7 +119,7 @@
   DEG_ANAL.lt <- FUN_DEG_Analysis(GeneExp.df, Anno.df,
                                   GroupType = AnnoSet.lt[["GroupType"]], GroupCompare = AnnoSet.lt[["GroupCompare"]],
                                   ThrSet = Thr.lt,
-                                  TarGeneName = TarGene_name, GroupMode = GeneExpSet.lt, SampleID = "X_INTEGRATION",
+                                  TarGeneName = TarGene_name, GroupMode = GeneExpSet.lt, SampleID =  SampleID,
                                   Save.Path = Save.Path, SampleName = ExportName, AnnoName = "")
   DE_Extract.df <- DEG_ANAL.lt[["DE_Extract.df"]]
   
@@ -244,7 +244,6 @@
   
   
 ##### Export PDF #####
-  
   pdf(
     file = paste0(getwd(), "/",Version,"/", Sys.Date(), "_GeneExp_Heatmap.pdf"),
     width = 12, height = 7
