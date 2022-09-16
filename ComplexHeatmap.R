@@ -55,10 +55,10 @@
   GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal")
   # for GoupByGeneExp
   TarGene_name <- "TOP2A"
-  
   GeneExpSet.lt <- list(GeneExpMode = "Mean", # c("Mean","Mean1SD","Mean2SD","Mean3SD","Median","Quartile","Customize"))
                         UpCutoff = 1, LowerCutoff = 1)
   
+  # Annotation set by previous setting
   if(Group_Mode == "GoupByGeneExp"){
     ## Group by GeneExp
     AnnoSet.lt <- list(GroupType = TarGene_name, GroupCompare = c("High","Low") )   ## DEG by GeneExp group
@@ -88,14 +88,17 @@
   
   
   #### Random select sample ####
-  Anno_Rec.df <- Anno.df[Anno.df[,"sample_type"] %in% "Solid Tissue Normal", ]
-  Anno_Prim.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
-  Anno.df <- rbind(Anno_Prim.df[sample(1:nrow(Anno_Prim.df),nrow(Anno_Rec.df)),],Anno_Rec.df)
+  # Extract Group1
+  Anno_Grp1.df <- Anno.df[Anno.df[,"sample_type"] %in% "Solid Tissue Normal", ]
+  # Extract Group2
+  Anno_Grp2.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
+  
+  Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),nrow(Anno_Grp1.df)),],Anno_Grp1.df)
   
   GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df$X_INTEGRATION] 
   Anno.df <- Anno.df[Anno.df$X_INTEGRATION %in% colnames(GeneExp.df),]
   
-  rm(Anno_Rec.df,Anno_Prim.df)
+  rm(Anno_Grp1.df,Anno_Grp2.df)
   
   #### Reorder the Anno.df #### ## Important!!!
   Anno.df <- left_join(data.frame("X_INTEGRATION"=colnames(GeneExp.df)),
