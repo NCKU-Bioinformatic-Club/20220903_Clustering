@@ -57,7 +57,7 @@
   ## Set threshold for DEG
   Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) ) #*
   SampleID = "X_INTEGRATION"
-  SampleNum = 50
+  SampleNum = 100
   GeneNum = 2000
   FDRSet = 0.01
   LogFCSet = 1
@@ -124,7 +124,7 @@
   Anno.df <- GeneExp_group.set[["AnnoNew.df"]]
   rm(GeneExp_group.set)
 
-#### Run DEG ####
+##### Run DEG #####
   source("FUN_DEG_Analysis.R")
   DEG_ANAL.lt <- FUN_DEG_Analysis(GeneExp.df, Anno.df,
                                   GroupType = AnnoSet.lt[["GroupType"]], GroupCompare = AnnoSet.lt[["GroupCompare"]],
@@ -133,26 +133,27 @@
                                   Save.Path = Save.Path, SampleName = ExportName, AnnoName = "")
   DE_Extract.df <- DEG_ANAL.lt[["DE_Extract.df"]]
   
-  ## Filter genes
+  #### Filter genes ####
+  ## Set selectedGenes
   selectedGenes <- selectedGenes[selectedGenes$FDR < FDRSet,]
   selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > LogFCSet,]
   selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:GeneNum],]
   # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:GeneNum],]
 
-  
-##### Data preprocessing #####
   ## Filter GeneExp matrix by selectedGenes
   matrix.df <- GeneExp.df[row.names(GeneExp.df) %in% selectedGenes$Gene,]
   
   ## Annotation col
   anno_colum.df <- Anno.df
+  rm(Anno.df)
+  
   ## Annotation row
   anno_row.df <- DE_Extract.df[DE_Extract.df$Gene %in% selectedGenes$Gene, ]
 
 
 ##### Heatmap plotting #####
   ## Set column annotation
-  column_ha_T = HeatmapAnnotation(
+  ha_column_T = HeatmapAnnotation(
     Sample = anno_colum.df$sample_type,
     Gender = anno_colum.df$gender,
     TarGene = anno_colum.df[,TarGene_name],
@@ -176,7 +177,7 @@
     c("#488c67", "#333333","#edd493")
   ) 
   
-  row_ha = rowAnnotation(
+  ha_row = rowAnnotation(
     p.value = anno_row.df$PValue,
     LogFC = anno_row.df$logFC,
     col = list(p.value = col_exp, LogFC = col_exp2),
@@ -201,8 +202,8 @@
     ),
     show_heatmap_legend = T,
     use_raster = F,
-    top_annotation = column_ha_T,
-    right_annotation = row_ha
+    top_annotation = ha_column_T,
+    right_annotation = ha_row
   ) -> P.Heatmap
   
   P.Heatmap %>% print
@@ -223,8 +224,8 @@
     ),
     show_heatmap_legend = T,
     use_raster = F,
-    top_annotation = column_ha_T,
-    right_annotation = row_ha
+    top_annotation = ha_column_T,
+    right_annotation = ha_row
   ) -> P.Heatmap2
   
   P.Heatmap2 %>% print
@@ -248,8 +249,8 @@
     ),
     show_heatmap_legend = T,
     use_raster = F,
-    top_annotation = column_ha_T,
-    right_annotation = row_ha
+    top_annotation = ha_column_T,
+    right_annotation = ha_row
   ) -> P.Heatmap3
   
   P.Heatmap3 %>% print
