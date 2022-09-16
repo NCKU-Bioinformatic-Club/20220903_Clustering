@@ -135,10 +135,11 @@
   
   #### Filter genes ####
   ## Set selectedGenes
+  selectedGenes <- DE_Extract.df
   selectedGenes <- selectedGenes[selectedGenes$FDR < FDRSet,]
   selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > LogFCSet,]
-  selectedGenes <- DE_Extract.df[rev(order(abs(DE_Extract.df$logFC)))[1:GeneNum],]
-  # selectedGenes <- DE_Extract.df[rev(order(DE_Extract.df$logFC))[1:GeneNum],]
+  selectedGenes <- selectedGenes[rev(order(abs(selectedGenes$logFC)))[1:GeneNum],]
+  # selectedGenes <- selectedGenes[rev(order(selectedGenes$logFC))[1:GeneNum],]
 
   ## Filter GeneExp matrix by selectedGenes
   matrix.df <- GeneExp.df[row.names(GeneExp.df) %in% selectedGenes$Gene,]
