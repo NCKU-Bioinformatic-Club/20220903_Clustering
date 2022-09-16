@@ -38,6 +38,7 @@
   Group_Mode <- "GoupByPheno"   # c("GoupByPheno","GoupByGeneExp") #*
   
   # for GoupByPheno
+  PhenoGroupType = "sample_type"
   GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal") #*
   # for GoupByGeneExp
   TarGene_name <- "TOP2A" #*
@@ -50,7 +51,7 @@
     AnnoSet.lt <- list(GroupType = TarGene_name, GroupCompare = c("High","Low") )   ## DEG by GeneExp group
   }else{
     ## Group by Pheno
-    AnnoSet.lt <- list(GroupType = "sample_type", GroupCompare = c(GroupCompare_Pheno) )
+    AnnoSet.lt <- list(GroupType = PhenoGroupType, GroupCompare = c(GroupCompare_Pheno) )
   }
   
   ## Set threshold for DEG
@@ -95,9 +96,9 @@
   
   #### Random select sample ####
   # Extract Group1
-  Anno_Grp1.df <- Anno.df[Anno.df[,"sample_type"] %in% "Solid Tissue Normal", ]
+  Anno_Grp1.df <- Anno.df[Anno.df[,AnnoSet.lt[["GroupType"]]] %in% AnnoSet.lt[["GroupCompare"]][1], ]
   # Extract Group2
-  Anno_Grp2.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
+  Anno_Grp2.df <- Anno.df[Anno.df[,AnnoSet.lt[["GroupType"]]] %in% AnnoSet.lt[["GroupCompare"]][2], ]
   
   # Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),nrow(Anno_Grp1.df)),],Anno_Grp1.df)
   Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),SampleNum),],Anno_Grp1.df[sample(1:nrow(Anno_Grp1.df),SampleNum),])
