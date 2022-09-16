@@ -36,11 +36,14 @@
   
   ## Import genetic data file
   GeneExp.df <- read.table(paste0(InFOLName_GE,"/",SampleName), header=T, row.names = 1, sep="\t")
+  GeneExp.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/Xena_TCGA_BRCA_GE"), header=T, row.names = 1, sep="\t")
+  
   colnames(GeneExp.df) <-  gsub("\\.", "-", colnames(GeneExp.df))
   GeneExp_ORi.df <- GeneExp.df # Save Ori
   
   
   Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
+  Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t")
   # Anno.df$sample_type <-  gsub(" ", "", Anno.df$sample_type)
   
 ##### Conditions setting* #####
