@@ -10,9 +10,7 @@
   Version = paste0(Sys.Date(),"_",ProjectName,"_",Sampletype,"_",ExportName)
   Save.Path = paste0(getwd(),"/",Version)
   ## Create new folder
-  if (!dir.exists(Save.Path)){
-    dir.create(Save.Path)
-  }
+  if (!dir.exists(Save.Path)){dir.create(Save.Path)}
 
 ##### Load Packages #####
   Package.set <- c("tidyverse","circlize","ComplexHeatmap","stringr")
@@ -26,8 +24,6 @@
   lapply(Package.set, library, character.only = TRUE)
   rm(Package.set,i)
 
-  # devtools::install_github("jokergoo/circlize")
-  
 ##### Import setting and Import* #####
   ## File setting*
   InFOLName_GE <- "Input_TCGA"  # Input Folder Name #*
@@ -46,6 +42,7 @@
   Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
   # Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t") #*
   
+  ## Rename the sample type
   # Anno.df$sample_type <-  gsub(" ", "", Anno.df$sample_type)
   
 ##### Conditions setting* #####
@@ -94,17 +91,18 @@
   Anno_Grp2.df <- Anno.df[Anno.df[,"sample_type"] %in% "Primary Tumor", ]
   
   Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),nrow(Anno_Grp1.df)),],Anno_Grp1.df)
-  Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),50),],Anno_Grp1.df[sample(1:nrow(Anno_Grp1.df),50),])
+  # Anno.df <- rbind(Anno_Grp2.df[sample(1:nrow(Anno_Grp2.df),50),],Anno_Grp1.df[sample(1:nrow(Anno_Grp1.df),50),])
   
-  GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df$X_INTEGRATION] 
-  Anno.df <- Anno.df[Anno.df$X_INTEGRATION %in% colnames(GeneExp.df),]
+  GeneExp.df <- GeneExp.df[,colnames(GeneExp.df) %in% Anno.df[,SampleID]] 
+  Anno.df <- Anno.df[Anno.df[,SampleID] %in% colnames(GeneExp.df),]
   
   rm(Anno_Grp1.df,Anno_Grp2.df)
   
   #### Reorder the Anno.df #### ## Important!!!
-  Anno.df <- left_join(data.frame("X_INTEGRATION"=colnames(GeneExp.df)),
-                       Anno.df)
-
+  # Anno.df <- left_join(data.frame("X_INTEGRATION"=colnames(GeneExp.df)), Anno.df)
+  GeneExpCol.df <- colnames(GeneExp.df) %>% as.data.frame()
+  colnames(GeneExpCol.df) <- SampleID
+  Anno.df <- left_join(GeneExpCol.df, Anno.df)
  
 ##### Grouping by GeneExp #####
   source("FUN_Group_GE.R")
