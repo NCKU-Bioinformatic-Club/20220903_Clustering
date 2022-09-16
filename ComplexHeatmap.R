@@ -164,17 +164,16 @@
     show_legend = T
   )
   
-  ## generate color of top annotation 
+  
+  ## Set row annotation
+  ## Color setting
   col_exp <-  colorRamp2(
     c(min(anno_row.df$PValue), mean(anno_row.df$PValue), max(anno_row.df$PValue)),
-    # c("#248a5c", "#52bf8e","#bbedd7")
-    # c("#c26334", "#db8051","#edd2bb")
     c("#3f705a", "#52bf8e","#b6d4ca")
 
   ) 
   col_exp2 <-  colorRamp2(
     c(min(anno_row.df$logFC), mean(anno_row.df$logFC), max(anno_row.df$logFC)),
-    # c("#1a5691", "#96cbff", "#d1e8ff")
     c("#488c67", "#333333","#edd493")
   ) 
   
@@ -199,7 +198,6 @@
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
       c("#416db0", "#1a2938", "#bf627e")
-      # c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
     use_raster = F,
@@ -221,7 +219,6 @@
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
       c("#416db0", "#1a2938", "#bf627e")
-      # c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
     use_raster = F,
@@ -246,7 +243,6 @@
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
       c("#416db0", "#1a2938", "#bf627e")
-      # c("#1c77d9", "#1a2938", "#ffe182")
     ),
     show_heatmap_legend = T,
     use_raster = F,
