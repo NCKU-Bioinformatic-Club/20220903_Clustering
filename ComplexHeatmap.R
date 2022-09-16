@@ -184,7 +184,31 @@
     show_legend = T
   )
   
+  ## Plot Heatmap
+  # Set Heatmap color
+  col_HMap <- c("#416db0", "#1a2938", "#bf627e")
+  # Without clustering
+  Heatmap(
+    matrix.df,
+    cluster_rows = F,
+    cluster_columns = F,
+    show_column_names = F,
+    show_row_names = F,
+    name = "GeneExp",
+    # set color
+    col = colorRamp2(
+      c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
+      col_HMap
+    ),
+    show_heatmap_legend = T,
+    use_raster = F,
+    top_annotation = ha_column_T,
+    right_annotation = ha_row
+  ) -> P.Heatmap1
   
+  P.Heatmap1 %>% print
+  
+  # Clustering
   Heatmap(
     matrix.df,
     # column_title = target_gene,
@@ -197,28 +221,7 @@
     # set color
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
-      c("#416db0", "#1a2938", "#bf627e")
-    ),
-    show_heatmap_legend = T,
-    use_raster = F,
-    top_annotation = ha_column_T,
-    right_annotation = ha_row
-  ) -> P.Heatmap
-  
-  P.Heatmap %>% print
-  
-  
-  Heatmap(
-    matrix.df,
-    cluster_rows = F,
-    cluster_columns = F,
-    show_column_names = F,
-    show_row_names = F,
-    name = "GeneExp",
-    # set color
-    col = colorRamp2(
-      c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
-      c("#416db0", "#1a2938", "#bf627e")
+      col_HMap
     ),
     show_heatmap_legend = T,
     use_raster = F,
@@ -227,8 +230,7 @@
   ) -> P.Heatmap2
   
   P.Heatmap2 %>% print
-  
-  
+
   # Reorder
   # https://jokergoo.github.io/ComplexHeatmap-reference/book/a-single-heatmap.html#row-and_column_orders
   Heatmap(
@@ -242,7 +244,7 @@
     # set color
     col = colorRamp2(
       c(min(matrix.df), matrix.df %>% unlist() %>% mean() , max(matrix.df)),
-      c("#416db0", "#1a2938", "#bf627e")
+      col_HMap
     ),
     show_heatmap_legend = T,
     use_raster = F,
@@ -258,7 +260,7 @@
     file = paste0(getwd(), "/",Version,"/", Sys.Date(), "_GeneExp_Heatmap.pdf"),
     width = 12, height = 7
   )
-    P.Heatmap
+    P.Heatmap1
     P.Heatmap2
     P.Heatmap3
   graphics.off()
