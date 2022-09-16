@@ -239,7 +239,7 @@
   
   pdf(
     file = paste0(getwd(), "/",Version,"/", Sys.Date(), "_GeneExp_Heatmap.pdf"),
-    width = 7, height = 7
+    width = 12, height = 7
   )
     P.Heatmap
     P.Heatmap2
