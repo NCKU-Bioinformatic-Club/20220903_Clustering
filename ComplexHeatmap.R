@@ -72,7 +72,11 @@
   ## Load Packages
   lapply(Package.set, library, character.only = TRUE)
   rm(Package.set,i)
-  
+ 
+##### Function setting #####
+  ## Call function 
+  source("FUN_Group_GE.R")
+  source("FUN_DEG_Analysis.R")
   
 ##### Data preprocess #####
   Anno_Ori.df <- Anno.df # Save Ori
