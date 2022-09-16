@@ -3,17 +3,17 @@
   memory.limit(150000)
 
 ##### Current path and new folder setting* #####
-  ProjectName = "TCGA"
-  Sampletype = "BRCA"
-  #ProjSamp.Path = paste0(Sampletype,"_",ProjectName)
-  
-  Version = paste0(Sys.Date(),"_",ProjectName,"_",Sampletype)
+  ProjectName = "TCGA" #*
+  Sampletype = "BRCA" #*
+  ExportName <- "HeatmapTest" #*
+ 
+  Version = paste0(Sys.Date(),"_",ProjectName,"_",Sampletype,"_",ExportName)
   Save.Path = paste0(getwd(),"/",Version)
   ## Create new folder
   if (!dir.exists(Save.Path)){
     dir.create(Save.Path)
   }
-  
+
 ##### Load Packages #####
   Package.set <- c("tidyverse","circlize","ComplexHeatmap","stringr")
   ## Check whether the installation of those packages is required from basic
@@ -30,33 +30,34 @@
   
 ##### Import setting and Import* #####
   ## File setting*
-  InFOLName_GE <- "Input_TCGA"  # Input Folder Name
-  SampleName <- "Xena_TCGA_BRCA_GE"
-  SamplePhenoName <- "TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"
+  InFOLName_GE <- "Input_TCGA"  # Input Folder Name #*
+  SampleName <- "Xena_TCGA_BRCA_GE" #*
+  SamplePhenoName <- "TCGA.BRCA.sampleMap_BRCA_clinicalMatrix" #*
   
   ## Import genetic data file
   GeneExp.df <- read.table(paste0(InFOLName_GE,"/",SampleName), header=T, row.names = 1, sep="\t")
-  # GeneExp.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/Xena_TCGA_BRCA_GE"), header=T, row.names = 1, sep="\t")
+  # GeneExp.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/Xena_TCGA_BRCA_GE"), header=T, row.names = 1, sep="\t") #*
   
+  ## Rename the colnames
   colnames(GeneExp.df) <-  gsub("\\.", "-", colnames(GeneExp.df))
   GeneExp_ORi.df <- GeneExp.df # Save Ori
   
   
   Anno.df <- read.table(paste0(InFOLName_GE,"/",SamplePhenoName), header=T, row.names = 1, sep="\t")
-  # Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t")
+  # Anno.df <- read.table(paste0("D:/Dropbox/##_GitHub/#_NCKU_Bioinformatic_Club/20220903_Clustering/Input_TCGA/TCGA.BRCA.sampleMap_BRCA_clinicalMatrix"), header=T, row.names = 1, sep="\t") #*
+  
   # Anno.df$sample_type <-  gsub(" ", "", Anno.df$sample_type)
   
 ##### Conditions setting* #####
-  ExportName <- "HeatmapTest"
-  
   ## Set grouping mode
-  Group_Mode <- "GoupByPheno"   # c("GoupByPheno","GoupByGeneExp")
+  Group_Mode <- "GoupByPheno"   # c("GoupByPheno","GoupByGeneExp") #*
+  
   # for GoupByPheno
-  GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal")
+  GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal") #*
   # for GoupByGeneExp
-  TarGene_name <- "TOP2A"
+  TarGene_name <- "TOP2A" #*
   GeneExpSet.lt <- list(GeneExpMode = "Mean", # c("Mean","Mean1SD","Mean2SD","Mean3SD","Median","Quartile","Customize"))
-                        UpCutoff = 1, LowerCutoff = 1)
+                        UpCutoff = 1, LowerCutoff = 1) #*
   
   # Annotation set by previous setting
   if(Group_Mode == "GoupByGeneExp"){
@@ -68,7 +69,7 @@
   }
   
   ## Set threshold for DEG
-  Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) )
+  Thr.lt <- list(LogFC = c("logFC",1), pVal = c("PValue",0.05) ) #*
   
 ##### Data preprocess setting #####
   #### Selection ####
@@ -128,6 +129,7 @@
   selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > 1,]
   
 ##### Data preprocessing #####
+  ## Filter GeneExp matrix by selectedGenes
   matrix.df <- GeneExp.df[row.names(GeneExp.df) %in% selectedGenes$Gene,]
   
   ## Annotation col
