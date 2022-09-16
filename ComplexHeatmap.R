@@ -153,17 +153,21 @@
 
 
 ##### Heatmap plotting #####
+  sample = c("#9b6ab8", "#6e6970")
+  names(sample) <- c(AnnoSet.lt[["GroupCompare"]][1],AnnoSet.lt[["GroupCompare"]][2])
+  
   ## Set column annotation
   ha_column_T = HeatmapAnnotation(
     Sample = anno_colum.df$sample_type,
     Gender = anno_colum.df$gender,
     TarGene = anno_colum.df[,TarGene_name],
-    col = list(Sample = c("Primary Tumor"="#9b6ab8", "Solid Tissue Normal"="#6e6970"),
+    col = list(Sample = sample,
                Gender = c("MALE"="#4382b5", "FEMALE"="#c25988"), #,"Medium"="#b57545"
                TarGene = c("High"="#db8051", "Low"="#c26334")), # #b6d4ca
     show_legend = T
   )
   
+  rm(sample)
   
   ## Set row annotation
   ## Color setting
@@ -185,9 +189,11 @@
   )
   
   ## Plot Heatmap
+  
   # Set Heatmap color
   col_HMap <- c("#416db0", "#1a2938", "#bf627e")
-  # Without clustering
+  
+  # Heatmap without clustering
   Heatmap(
     matrix.df,
     cluster_rows = F,
@@ -208,7 +214,7 @@
   
   P.Heatmap1 %>% print
   
-  # Clustering
+  # Heatmap with clustering
   Heatmap(
     matrix.df,
     # column_title = target_gene,
@@ -231,7 +237,7 @@
   
   P.Heatmap2 %>% print
 
-  # Reorder
+  # Reorder Heatmap
   # https://jokergoo.github.io/ComplexHeatmap-reference/book/a-single-heatmap.html#row-and_column_orders
   Heatmap(
     matrix.df,
