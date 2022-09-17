@@ -5,7 +5,7 @@
 ##### Current path and new folder setting* #####
   ProjectName = "TCGA" #*
   Sampletype = "BRCA" #*
-  ExportName <- "HeatmapTest" #*
+  ExportName <- "HeatmapTest2" #*
  
   Version = paste0(Sys.Date(),"_",ProjectName,"_",Sampletype,"_",ExportName)
   Save.Path = paste0(getwd(),"/",Version)
@@ -40,6 +40,7 @@
   # for GoupByPheno
   PhenoGroupType = "sample_type"
   GroupCompare_Pheno <- c("Primary Tumor","Solid Tissue Normal") #*
+  PhenoGroupType2 = "gender"
   # for GoupByGeneExp
   TarGene_name <- "TOP2A" #*
   GeneExpSet.lt <- list(GeneExpMode = "Mean", # c("Mean","Mean1SD","Mean2SD","Mean3SD","Median","Quartile","Customize"))
@@ -153,21 +154,40 @@
 
 
 ##### Heatmap plotting #####
+  ## Set column annotation
   sample = c("#9b6ab8", "#6e6970")
   names(sample) <- c(AnnoSet.lt[["GroupCompare"]][1],AnnoSet.lt[["GroupCompare"]][2])
-  
-  ## Set column annotation
+
   ha_column_T = HeatmapAnnotation(
-    Sample = anno_colum.df$sample_type,
-    Gender = anno_colum.df$gender,
+    Sample = anno_colum.df[,PhenoGroupType],  # anno_colum.df$sample_type,
+    Gender = anno_colum.df[,PhenoGroupType2], # anno_colum.df$gender,
     TarGene = anno_colum.df[,TarGene_name],
     col = list(Sample = sample,
                Gender = c("MALE"="#4382b5", "FEMALE"="#c25988"), #,"Medium"="#b57545"
                TarGene = c("High"="#db8051", "Low"="#c26334")), # #b6d4ca
     show_legend = T
   )
-  
+
   rm(sample)
+  
+  # ## Set column annotation
+  # col_ha_column <- list(c("#9b6ab8", "#6e6970"),
+  #                       c("#4382b5", "#c25988"),
+  #                       c("#db8051", "#c26334"))
+  # names(col_ha_column) <- c(PhenoGroupType, PhenoGroupType2, TarGene_name)
+  # 
+  # ha_column_Anno <- list(anno_colum.df[,PhenoGroupType],
+  #                        anno_colum.df[,PhenoGroupType2],
+  #                        anno_colum.df[,TarGene_name],
+  #                        col = col_ha_column %>% as.vector.factor(),
+  #                        show_legend = T)
+  # names(ha_column_Anno)[1:3] <- c(PhenoGroupType, PhenoGroupType2, TarGene_name)
+  #   
+  # formals(HeatmapAnnotation)[names(ha_column_Anno)] <- ha_column_Anno
+  # formals(HeatmapAnnotation)[names(ha_column_Anno)] <- ha_column_Anno
+  # ha_column_T = HeatmapAnnotation()
+  # 
+  # rm(col_ha_column, ha_column_Anno)
   
   ## Set row annotation
   ## Color setting
