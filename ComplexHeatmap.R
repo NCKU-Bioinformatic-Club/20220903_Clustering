@@ -5,7 +5,7 @@
 ##### Current path and new folder setting* #####
   ProjectName = "TCGA" #*
   Sampletype = "BRCA" #*
-  ExportName <- "HeatmapTest2" #*
+  ExportName <- "HeatmapTest" #*
  
   Version = paste0(Sys.Date(),"_",ProjectName,"_",Sampletype,"_",ExportName)
   Save.Path = paste0(getwd(),"/",Version)
@@ -137,9 +137,10 @@
   #### Filter genes ####
   ## Set selectedGenes
   selectedGenes <- DE_Extract.df
+  selectedGenes <- selectedGenes[rev(order(abs(selectedGenes$logFC)))[1:GeneNum],]
   selectedGenes <- selectedGenes[selectedGenes$FDR < FDRSet,]
   selectedGenes <- selectedGenes[abs(selectedGenes$logFC) > LogFCSet,]
-  selectedGenes <- selectedGenes[rev(order(abs(selectedGenes$logFC)))[1:GeneNum],]
+
   # selectedGenes <- selectedGenes[rev(order(selectedGenes$logFC))[1:GeneNum],]
 
   ## Filter GeneExp matrix by selectedGenes
